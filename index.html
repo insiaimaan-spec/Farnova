@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+  <title>FarNova — Claim $NOVA</title>
+
+  <!--
+  ╔══════════════════════════════════════════════╗
+  ║  STEP 1: Replace farnova.vercel.app after deploying ║
+  ╚══════════════════════════════════════════════╝
+  -->
+  <meta name="fc:frame" content='{
+    "version":"next",
+    "imageUrl":"https://farnova.vercel.app/og.png",
+    "button":{
+      "title":"🌟 Claim $NOVA",
+      "action":{
+        "type":"launch_frame",
+        "name":"FarNova",
+        "url":"https://farnova.vercel.app",
+        "splashImageUrl":"https://farnova.vercel.app/splash.png",
+        "splashBackgroundColor":"#080412"
+      }
+    }
+  }'/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --bg:         #080412;
+      --card:       #100b24;
+      --card2:      #130e28;
+      --border:     rgba(120,80,255,0.15);
+      --border2:    rgba(120,80,255,0.08);
+      --purple:     #7c4dff;
+      --purple-lt:  #9d78ff;
+      --gold:       #f0a500;
+      --gold-lt:    #ffc93c;
+      --text:       #ede9ff;
+      --text-2:     #9890b8;
+      --text-3:     #5c5480;
+      --green:      #22c55e;
+      --red:        #f43f5e;
+      --amber:      #f59e0b;
+      --radius:     18px;
+      --radius-sm:  10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { height: 100%; }
+
+    body {
+      min-height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Background glow ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(124,77,255,.25) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 90% 110%, rgba(240,165,0,.1) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 10% 90%, rgba(124,77,255,.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ── Root container ── */
+    #app {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 390px;
+      animation: rise .5s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Card ── */
+    .card {
+      background: linear-gradient(160deg, var(--card) 0%, var(--card2) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.03) inset,
+                  0 24px 64px rgba(0,0,0,.5),
+                  0 0 80px rgba(124,77,255,.07);
+    }
+
+    /* ── Top header bar ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px 16px;
+      border-bottom: 1px solid var(--border2);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 9px;
+    }
+    .brand-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--purple), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 4px 12px rgba(124,77,255,.4);
+    }
+    .brand-name {
+      font-size: 16px; font-weight: 700; letter-spacing: -.3px;
+      background: linear-gradient(135deg, #d4c8ff, var(--gold-lt));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .network-pill {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border2);
+      border-radius: 20px; padding: 4px 10px;
+      font-size: 11px; font-weight: 500; color: var(--text-2);
+      font-family: 'DM Mono', monospace;
+    }
+    .network-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #3b82f6;
+      box-shadow: 0 0 6px #3b82f6;
+    }
+
+    /* ── Body padding ── */
+    .body { padding: 24px 22px; }
+
+    /* ─────────────────────────────────
+       LOADING STATE
+    ───────────────────────────────── */
+    #state-loading { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 28px 0; }
+    .loader {
+      width: 40px; height: 40px;
+      border: 2.5px solid rgba(124,77,255,.15);
+      border-top-color: var(--purple);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-text { font-size: 13px; color: var(--text-2); font-weight: 500; }
+
+    /* ─────────────────────────────────
+       MAIN STATE
+    ───────────────────────────────── */
+    #state-main { display: none; }
+
+    /* User row */
+    .user-row {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 20px;
+    }
+    .avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), #4f46e5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+      overflow: hidden;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .user-fid  { font-size: 11px; color: var(--text-3); font-family: 'DM Mono', monospace; }
+    .verified  { color: var(--purple); font-size: 12px; }
+
+    /* Score card */
+    .score-card {
+      background: rgba(124,77,255,.06);
+      border: 1px solid rgba(124,77,255,.15);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .score-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .score-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--text-3);
+    }
+    .tier-chip {
+      font-size: 10px; font-weight: 700; letter-spacing: .8px;
+      text-transform: uppercase; padding: 3px 10px;
+      border-radius: 20px; border: 1px solid transparent;
+    }
+    .score-body {
+      display: flex; align-items: flex-end; gap: 6px; margin-bottom: 14px;
+    }
+    .score-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 38px; font-weight: 500;
+      color: var(--text); line-height: 1;
+    }
+    .score-max {
+      font-size: 13px; color: var(--text-3);
+      margin-bottom: 4px; font-family: 'DM Mono', monospace;
+    }
+    .bar-track {
+      height: 5px; background: rgba(255,255,255,.06);
+      border-radius: 99px; overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; border-radius: 99px; width: 0%;
+      transition: width 1.4s cubic-bezier(.16,1,.3,1);
+      background: linear-gradient(90deg, var(--purple), var(--gold));
+    }
+
+    /* Allocation box */
+    .alloc-box {
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(240,165,0,.2);
+      background: linear-gradient(135deg, rgba(240,165,0,.06), rgba(124,77,255,.06));
+      padding: 18px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .alloc-left { }
+    .alloc-label-sm {
+      font-size: 11px; font-weight: 600; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 4px;
+    }
+    .alloc-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 28px; font-weight: 500;
+      background: linear-gradient(135deg, var(--gold-lt), #fff8e0);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      line-height: 1;
+    }
+    .alloc-token-name {
+      font-size: 12px; font-weight: 600; color: var(--gold);
+      letter-spacing: .5px; margin-top: 3px;
+    }
+    .alloc-icon {
+      font-size: 36px;
+      filter: drop-shadow(0 0 12px rgba(240,165,0,.4));
+    }
+
+    /* Tier reference */
+    .tiers-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 10px;
+    }
+    .tiers-grid {
+      display: flex; flex-direction: column; gap: 6px;
+      margin-bottom: 20px;
+    }
+    .tier-item {
+      display: flex; align-items: center;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.05);
+      border-radius: 8px; padding: 9px 12px; gap: 10px;
+      transition: border-color .2s;
+    }
+    .tier-item.active {
+      border-color: rgba(124,77,255,.35);
+      background: rgba(124,77,255,.07);
+    }
+    .tier-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .tier-name-col { font-size: 12px; font-weight: 600; flex: 0 0 52px; }
+    .tier-range {
+      font-size: 10px; color: var(--text-3);
+      font-family: 'DM Mono', monospace; flex: 1;
+    }
+    .tier-amt {
+      font-size: 12px; font-weight: 600; color: var(--gold);
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* Fee & button */
+    .fee-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 14px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid var(--border2);
+      border-radius: 10px; margin-bottom: 14px;
+    }
+    .fee-l { display: flex; align-items: center; gap: 7px; }
+    .fee-l span:first-child { font-size: 13px; }
+    .fee-l span:last-child { font-size: 13px; color: var(--text-2); font-weight: 500; }
+    .fee-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px; font-weight: 500; color: var(--text);
+    }
+
+    .btn-claim {
+      width: 100%; padding: 15px;
+      background: linear-gradient(135deg, #6d28d9 0%, var(--purple) 50%, #7c3aed 100%);
+      border: none; border-radius: 12px;
+      color: #fff; font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; position: relative; overflow: hidden;
+      box-shadow: 0 4px 20px rgba(124,77,255,.35), 0 0 0 1px rgba(255,255,255,.08) inset;
+      transition: transform .15s, box-shadow .15s, opacity .15s;
+    }
+    .btn-claim::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,.12) 0%, transparent 100%);
+      border-radius: inherit;
+    }
+    .btn-claim:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(124,77,255,.45), 0 0 0 1px rgba(255,255,255,.1) inset;
+    }
+    .btn-claim:active:not(:disabled) { transform: translateY(0); }
+    .btn-claim:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-claim.done {
+      background: linear-gradient(135deg, #14532d, var(--green));
+      box-shadow: 0 4px 20px rgba(34,197,94,.25);
+    }
+
+    /* Status */
+    .status {
+      margin-top: 12px; padding: 11px 14px;
+      border-radius: 10px; font-size: 12px; font-weight: 500;
+      font-family: 'DM Mono', monospace; line-height: 1.5;
+      display: none;
+    }
+    .status.show { display: block; }
+    .status.ok   { background: rgba(34,197,94,.08);  border: 1px solid rgba(34,197,94,.2);  color: var(--green); }
+    .status.err  { background: rgba(244,63,94,.08);  border: 1px solid rgba(244,63,94,.2);  color: var(--red); }
+    .status.wait { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.2); color: var(--amber); }
+
+    /* ─────────────────────────────────
+       OTHER STATES
+    ───────────────────────────────── */
+    #state-claimed, #state-noframe, #state-err { display: none; }
+
+    .state-center {
+      text-align: center; padding: 24px 0 8px;
+    }
+    .state-icon { font-size: 44px; margin-bottom: 14px; }
+    .state-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .state-desc { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+
+    /* ── Footer ── */
+    .footer {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 14px 22px 18px;
+      border-top: 1px solid var(--border2);
+      font-size: 11px; color: var(--text-3);
+      font-family: 'DM Mono', monospace;
+    }
+    .footer-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-3); }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <div class="card">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-icon">🌟</div>
+        <span class="brand-name">FarNova</span>
+      </div>
+      <div class="network-pill">
+        <div class="network-dot"></div>
+        Base
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+
+      <!-- Loading -->
+      <div id="state-loading">
+        <div class="loader"></div>
+        <span class="loader-text">Fetching your score…</span>
+      </div>
+
+      <!-- Main -->
+      <div id="state-main">
+        <!-- User row -->
+        <div class="user-row">
+          <div class="avatar" id="user-avatar">👤</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">—</div>
+            <div class="user-fid" id="user-fid">FID: —</div>
+          </div>
+          <span class="verified">✦ Verified</span>
+        </div>
+
+        <!-- Score card -->
+        <div class="score-card">
+          <div class="score-head">
+            <span class="score-label">Neynar Score</span>
+            <span class="tier-chip" id="tier-chip">—</span>
+          </div>
+          <div class="score-body">
+            <span class="score-num" id="score-num">0.000</span>
+            <span class="score-max">/ 1.000</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="bar-fill"></div></div>
+        </div>
+
+        <!-- Allocation -->
+        <div class="alloc-box">
+          <div class="alloc-left">
+            <div class="alloc-label-sm">Your Allocation</div>
+            <div class="alloc-num" id="alloc-num">0</div>
+            <div class="alloc-token-name">$NOVA Tokens</div>
+          </div>
+          <div class="alloc-icon">🪙</div>
+        </div>
+
+        <!-- Tier reference -->
+        <div class="tiers-label">Allocation Tiers</div>
+        <div class="tiers-grid" id="tiers-grid"></div>
+
+        <!-- Fee -->
+        <div class="fee-row">
+          <div class="fee-l">
+            <span>⛽</span>
+            <span>Mint Fee</span>
+          </div>
+          <span class="fee-val">0.00006 ETH</span>
+        </div>
+
+        <!-- CTA -->
+        <button class="btn-claim" id="btn-claim" onclick="handleClaim()">
+          Claim $NOVA Tokens
+        </button>
+
+        <div class="status" id="status-msg"></div>
+      </div>
+
+      <!-- Already claimed -->
+      <div id="state-claimed">
+        <div class="state-center">
+          <div class="state-icon">✅</div>
+          <div class="state-title">Already Claimed</div>
+          <div class="state-desc">Your $NOVA tokens have been claimed. Check your wallet for your allocation.</div>
+        </div>
+      </div>
+
+      <!-- Not in frame -->
+      <div id="state-noframe">
+        <div class="state-center">
+          <div class="state-icon">🔮</div>
+          <div class="state-title">Open in Warpcast</div>
+          <div class="state-desc">This Mini App must be opened inside Warpcast to check your token allocation.</div>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div id="state-err">
+        <div class="state-center">
+          <div class="state-icon">⚠️</div>
+          <div class="state-title">Something went wrong</div>
+          <div class="state-desc" id="err-msg">Please try again later.</div>
+        </div>
+      </div>
+
+    </div><!-- /body -->
+
+    <!-- Footer -->
+    <div class="footer">
+      <span>FarNova</span>
+      <div class="footer-dot"></div>
+      <span>Built on Base</span>
+      <div class="footer-dot"></div>
+      <span>Farcaster Mini App</span>
+    </div>
+
+  </div><!-- /card -->
+</div><!-- /app -->
+
+<!-- ╔══════════════════════════════════╗
+     ║  CONFIG — Edit before deploying  ║
+     ╚══════════════════════════════════╝ -->
+<script>
+const CONFIG = {
+  // ⚠️ Paste your Neynar API key here
+  NEYNAR_API_KEY: "DE8E47D8-9F62-4C74-B461-19D61C82E51F",
+
+  // Fee receiver (your wallet)
+  TREASURY: "0xb55ab0302Db8C8827fcBDE7F2CF33C40a7783784",
+
+  // Mint fee
+  FEE_ETH: 0.00006,
+
+  // Base chain ID (8453)
+  CHAIN_ID: "0x2105",
+
+  // Allocation tiers by Neynar score
+  TIERS: [
+    { name:"Elite",  min:0.80, max:1.00, tokens:50000, color:"#f0a500", bg:"rgba(240,165,0,.12)"  },
+    { name:"Power",  min:0.60, max:0.79, tokens:25000, color:"#a78bfa", bg:"rgba(167,139,250,.12)"},
+    { name:"Active", min:0.40, max:0.59, tokens:10000, color:"#60a5fa", bg:"rgba(96,165,250,.12)" },
+    { name:"Member", min:0.20, max:0.39, tokens:5000,  color:"#34d399", bg:"rgba(52,211,153,.12)" },
+    { name:"Early",  min:0.00, max:0.19, tokens:1000,  color:"#94a3b8", bg:"rgba(148,163,184,.08)"},
+  ]
+};
+</script>
+
+<script type="module">
+(async () => {
+const sdkMod = await import('https://esm.sh/@farcaster/frame-sdk').catch(()=>({}));
+  const sdk = sdkMod.default || sdkMod;
+
+/* ── helpers ── */
+const $  = id => document.getElementById(id);
+const fmt = n => Number(n).toLocaleString();
+
+function showState(name) {
+  const flexStates = ['loading','claimed','noframe','err'];
+  ['loading','main','claimed','noframe','err'].forEach(s => {
+    const el = $('state-'+s);
+    if (!el) return;
+    if (s === name) {
+      el.style.display = flexStates.includes(s) ? 'flex' : 'block';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+}
+
+function getTier(score) {
+  return CONFIG.TIERS.find(t => score >= t.min && score <= t.max)
+    ?? CONFIG.TIERS[CONFIG.TIERS.length - 1];
+}
+
+function buildTiers(score) {
+  $('tiers-grid').innerHTML = CONFIG.TIERS.map(t => {
+    const active = score >= t.min && score <= t.max;
+    return `
+      <div class="tier-item${active?' active':''}">
+        <div class="tier-dot" style="background:${t.color}"></div>
+        <span class="tier-name-col" style="color:${t.color}">${t.name}</span>
+        <span class="tier-range">${t.min.toFixed(2)} – ${t.max.toFixed(2)}</span>
+        <span class="tier-amt">${fmt(t.tokens)}</span>
+      </div>`;
+  }).join('');
+}
+
+function animateScore(target) {
+  setTimeout(() => $('bar-fill').style.width = (target * 100) + '%', 200);
+  const start = performance.now();
+  (function tick(now) {
+    const p = Math.min((now - start) / 1100, 1);
+    const e = 1 - Math.pow(1 - p, 4);
+    $('score-num').textContent = (e * target).toFixed(3);
+    if (p < 1) requestAnimationFrame(tick);
+    else $('score-num').textContent = target.toFixed(3);
+  })(start);
+}
+
+function setStatus(type, msg) {
+  const el = $('status-msg');
+  el.className = `status show ${type}`;
+  el.textContent = msg;
+}
+
+/* ── init ── */
+async function init() {
+  showState('loading');
+
+  let ctx;
+  try { ctx = await sdk.context; } catch(_) {}
+
+  if (!ctx?.user?.fid) {
+    showState('noframe');
+    try { sdk?.actions?.ready?.(); } catch(e) {}
+    return;
+  }
+
+  const { fid, username, displayName, pfpUrl } = ctx.user;
+
+  // Check already claimed
+  let alreadyClaimed = false;
+  try { alreadyClaimed = !!localStorage.getItem('farnova_claimed_' + fid); } catch(e) {}
+  if (alreadyClaimed) {
+    showState('claimed');
+    try { sdk?.actions?.ready?.(); } catch(e) {}
+    return;
+  }
+
+  // Fetch Neynar score
+  let score = 0;
+  try {
+    const r = await fetch(
+      `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}`,
+      { headers: { 'x-api-key': CONFIG.NEYNAR_API_KEY, accept: 'application/json' } }
+    );
+    const d = await r.json();
+    const u = d?.users?.[0];
+    score = u?.experimental?.neynar_user_score ?? u?.score ?? 0;
+  } catch(e) { console.warn('Score fetch error', e); }
+
+  const tier = getTier(score);
+
+  // Populate UI
+  $('user-name').textContent = displayName || username || 'Farcaster User';
+  $('user-fid').textContent  = `FID: ${fid}`;
+  if (pfpUrl) {
+    $('user-avatar').innerHTML = `<img src="${pfpUrl}" alt="avatar" onerror="this.parentNode.textContent='👤'"/>`;
+  }
+
+  const chip = $('tier-chip');
+  chip.textContent = tier.name;
+  chip.style.background = tier.bg;
+  chip.style.color = tier.color;
+  chip.style.borderColor = tier.color + '44';
+
+  $('alloc-num').textContent = fmt(tier.tokens);
+  buildTiers(score);
+  showState('main');
+  animateScore(score);
+
+  window._nova = { fid, score, tier };
+  try { sdk?.actions?.ready?.(); } catch(e) {}
+}
+
+/* ── claim ── */
+window.handleClaim = async function() {
+  const { fid, tier } = window._nova || {};
+  if (!fid) return;
+
+  const btn = $('btn-claim');
+  btn.disabled = true;
+  btn.textContent = 'Connecting wallet…';
+  setStatus('wait', '⏳ Connecting to wallet…');
+
+  try {
+    const provider = sdk.wallet.ethProvider;
+
+    // Step 1: Get user wallet address
+    const accounts = await provider.request({ method: 'eth_requestAccounts' });
+    const from = accounts[0];
+    if (!from) throw new Error('No wallet address found');
+
+    // Step 2: Switch to Base chain
+    try {
+      await provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x2105' }]
+      });
+    } catch(switchErr) {
+      // If Base not added, add it
+      if (switchErr.code === 4902) {
+        await provider.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: '0x2105',
+            chainName: 'Base',
+            nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+            rpcUrls: ['https://mainnet.base.org'],
+            blockExplorerUrls: ['https://basescan.org']
+          }]
+        });
+      }
+    }
+
+    btn.textContent = 'Confirm in wallet…';
+    setStatus('wait', '⏳ Please confirm the transaction…');
+
+    // Step 3: Send transaction
+    const wei = BigInt(Math.round(CONFIG.FEE_ETH * 1e18));
+    const hex = '0x' + wei.toString(16);
+
+    const txHash = await provider.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: from,
+        to: CONFIG.TREASURY,
+        value: hex,
+        gas: '0x5208',
+        data: '0x'
+      }]
+    });
+
+    try { localStorage.setItem('farnova_claimed_' + fid, txHash); } catch(e) {}
+    btn.textContent = '✓ Claimed Successfully';
+    btn.classList.add('done');
+    setStatus('ok', `✓ Tx confirmed: ${txHash.slice(0,10)}…${txHash.slice(-6)}`);
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Claim $NOVA Tokens';
+    const rejected = e?.code === 4001 || String(e?.message).includes('reject');
+    setStatus('err', rejected ? '✗ Transaction rejected by user.' : ('✗ ' + (e?.message || 'Transaction failed.')));
+  }
+};
+
+init();
+})();
+</script>
+</body>
+</html>
